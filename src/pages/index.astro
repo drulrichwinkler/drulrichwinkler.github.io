@@ -1,0 +1,9 @@
+---
+import Base from '../layouts/Base.astro';
+import Profile from '../components/Profile.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Base lang="de" altHref={`${base}/en/`}>
+  <Profile lang="de" />
+</Base>

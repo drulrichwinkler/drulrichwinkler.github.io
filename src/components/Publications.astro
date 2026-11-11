@@ -1,0 +1,108 @@
+---
+import { groups } from '../data/publications';
+import { contact, type Lang } from '../data/profile';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = {
+  de: {
+    title: 'Publikationen',
+    intro:
+      'Buchbeiträge, begutachtete Konferenzbeiträge, Demonstrationen und Patente. Volltexte und Zitationen finden Sie auch auf ResearchGate.',
+    profiles: 'Profile',
+  },
+  en: {
+    title: 'Publications',
+    intro:
+      'Book chapters, peer-reviewed conference papers, demos and patents. Full texts and citations are also available on ResearchGate.',
+    profiles: 'Profiles',
+  },
+}[lang];
+
+const profiles = [
+  { label: 'ResearchGate', href: contact.researchgate },
+  { label: 'LinkedIn', href: contact.linkedin },
+].filter((p) => p.href);
+
+// "US 10,095,994 B2 (SAP SE)" -> Google-Patents-Link
+const patentUrl = (venue: string) => {
+  const m = venue.match(/^US ([\d,]+) (B\d)/);
+  return m ? `https://patents.google.com/patent/US${m[1].replaceAll(',', '')}${m[2]}` : undefined;
+};
+
+const highlight = (authors: string) =>
+  authors.split('U. Winkler').flatMap((part, i) => (i === 0 ? [part] : ['§ME§', part]));
+---
+
+<h1>{t.title}</h1>
+<p>{t.intro}</p>
+
+<ul class="profiles">
+  {profiles.map((p) => <li><a href={p.href}>{p.label}</a></li>)}
+</ul>
+
+{
+  groups.map((g) => (
+    <section>
+      <h2>{g[lang]}</h2>
+      <ol class="pubs">
+        {g.items.map((p) => {
+          const patent = patentUrl(p.venue);
+          return (
+            <li>
+              <span class="year">{p.year}</span>
+              <div>
+                <span class="title">{p.title}</span>
+                <span class="authors">
+                  {highlight(p.authors).map((part) => (part === '§ME§' ? <strong>U. Winkler</strong> : part))}
+                </span>
+                <span class="venue">
+                  {p.venue}
+                  {p.doi && (
+                    <>
+                      {' · '}
+                      <a href={`https://doi.org/${p.doi}`}>doi:{p.doi}</a>
+                    </>
+                  )}
+                  {patent && (
+                    <>
+                      {' · '}
+                      <a href={patent}>Google Patents</a>
+                    </>
+                  )}
+                </span>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  ))
+}
+
+<style>
+  .profiles { list-style: none; padding: 0; display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .profiles a {
+    display: inline-block;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.25rem 0.9rem;
+    text-decoration: none;
+  }
+  .pubs { list-style: none; padding: 0; margin: 0; }
+  .pubs li {
+    display: grid;
+    grid-template-columns: 3.5rem 1fr;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .pubs li:last-child { border-bottom: none; }
+  .year { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .title { display: block; font-weight: 600; line-height: 1.4; }
+  .authors, .venue { display: block; font-size: 0.9rem; }
+  .venue { color: var(--muted); overflow-wrap: anywhere; }
+</style>

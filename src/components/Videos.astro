@@ -1,0 +1,58 @@
+---
+import { channel, pageText, playlists, slidesProfile } from '../data/media';
+import type { Lang } from '../data/profile';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = pageText[lang];
+---
+
+<h1>{t.title}</h1>
+<p>{t.intro}</p>
+
+<ul class="buttons">
+  <li><a href={channel}>{t.channel}</a></li>
+  <li><a href={slidesProfile}>{t.slides}</a></li>
+</ul>
+
+{
+  playlists.map((pl) => (
+    <section>
+      <h2>
+        {t.playlist} · {lang === 'de' ? pl.lang : pl.langEn}
+      </h2>
+      <p class="pl">
+        <a href={pl.url}>{pl.title}</a>
+      </p>
+      <ul class="videos">
+        {pl.videos.map((v) => (
+          <li>
+            <a href={`https://www.youtube.com/watch?v=${v.id}&list=${pl.url.split('list=')[1]}`}>▶ {v.title}</a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))
+}
+
+<p class="note">{t.external}</p>
+
+<style>
+  .buttons { list-style: none; padding: 0; display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .buttons a {
+    display: inline-block;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.25rem 0.9rem;
+    text-decoration: none;
+  }
+  .pl { margin: 0 0 0.5rem; font-weight: 600; }
+  .videos { list-style: none; padding: 0; margin: 0; }
+  .videos li { padding: 0.45rem 0; border-bottom: 1px solid var(--line); }
+  .videos li:last-child { border-bottom: none; }
+  .videos a { text-decoration: none; }
+  .note { margin-top: 2.5rem; font-size: 0.85rem; color: var(--muted); }
+</style>

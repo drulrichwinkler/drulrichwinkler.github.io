@@ -1,0 +1,125 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { contact, text, type Lang } from '../data/profile';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = text[lang];
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// Porträt: src/assets/portrait.jpg (oder .png/.webp) ablegen – sonst Initialen.
+const portraits = import.meta.glob<{ default: ImageMetadata }>('../assets/portrait.{jpg,jpeg,png,webp}', {
+  eager: true,
+});
+const portrait = Object.values(portraits)[0]?.default;
+
+const links = [
+  { label: 'E-Mail', href: `mailto:${contact.email}`, show: contact.email },
+  { label: 'LinkedIn', href: contact.linkedin, show: contact.linkedin },
+  { label: 'ResearchGate', href: contact.researchgate, show: contact.researchgate },
+  { label: 'GitHub', href: contact.github, show: contact.github },
+].filter((l) => l.show);
+---
+
+<section class="hero">
+  {
+    portrait ? (
+      <Image class="portrait" src={portrait} alt={contact.name} width={176} height={176} loading="eager" />
+    ) : (
+      <div class="portrait initials" aria-hidden="true">UW</div>
+    )
+  }
+  <div>
+    <h1>{contact.name}</h1>
+    <p class="role">{t.role}</p>
+  </div>
+</section>
+
+{t.intro.map((p) => <p>{p}</p>)}
+
+<h2>{t.teachingTitle}</h2>
+<ul class="teaching">
+  {t.teaching.map((item) => <li>{item}</li>)}
+</ul>
+<p class="more"><a href={lang === 'de' ? `${base}/videos/` : `${base}/en/videos/`}>{lang === 'de' ? 'Vorlesungsvideos und Folien →' : 'Lecture videos and slides →'}</a></p>
+
+<h2>{t.cvTitle}</h2>
+<dl class="cv">
+  {
+    t.cv.map((row) => (
+      <>
+        <dt>{row.when}</dt>
+        <dd>{row.what}</dd>
+      </>
+    ))
+  }
+</dl>
+
+<h2>{t.eduTitle}</h2>
+<dl class="cv">
+  {
+    t.edu.map((row) => (
+      <>
+        <dt>{row.when}</dt>
+        <dd>{row.what}</dd>
+      </>
+    ))
+  }
+</dl>
+
+<h2>{t.researchTitle}</h2>
+<p>{t.research}</p>
+<p class="more"><a href={lang === 'de' ? `${base}/publikationen/` : `${base}/en/publications/`}>{lang === 'de' ? 'Alle Publikationen →' : 'All publications →'}</a></p>
+
+<h2>{t.contactTitle}</h2>
+<p>{t.contactText}</p>
+<ul class="links">
+  {links.map((l) => <li><a href={l.href}>{l.label === 'E-Mail' ? contact.email : l.label}</a></li>)}
+</ul>
+
+<style>
+  .hero {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    margin: 1.5rem 0 2rem;
+  }
+  .portrait {
+    width: 7.5rem;
+    height: 7.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 3px solid var(--card);
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  .initials {
+    display: grid;
+    place-items: center;
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 2.2rem;
+    font-weight: 600;
+  }
+  .more { margin-top: 0.75rem; }
+  .role { color: var(--muted); margin: 0; }
+  .teaching { padding-left: 1.2rem; margin: 0; }
+  .cv {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: 0.4rem 1rem;
+    margin: 0;
+  }
+  .cv dt { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cv dd { margin: 0; }
+  .links { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.6rem 1.5rem; }
+  @media (max-width: 34rem) {
+    .hero { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .cv { grid-template-columns: 1fr; gap: 0 0; }
+    .cv dd { margin-bottom: 0.6rem; }
+  }
+</style>
